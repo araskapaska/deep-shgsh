@@ -518,7 +518,7 @@
         }
         #nicknameRequiredModal .modal-content h2 {
             font-size: 26px;
-            color: #ffda00; /* Yellow for emphasis */
+            /* Removed yellow color here, now uses --branch-text-color */
         }
         #nicknameRequiredModal .modal-content p {
             font-size: 18px;
@@ -812,14 +812,27 @@
         }
 
         function saveNickname() {
-            const nicknameInput = document.getElementById('nicknameInput');
-            const newNickname = nicknameInput.value.trim();
+            // Determine which input field to read from
+            const nicknameInputFromHeader = document.getElementById('nicknameInput');
+            const nicknameInputFromModal = document.getElementById('nicknameInputModal');
+            
+            let newNickname;
+            if (nicknameInputFromModal && nicknameInputFromModal.value.trim() !== '') {
+                newNickname = nicknameInputFromModal.value.trim();
+                // If saving from modal, update the header input too for consistency
+                nicknameInputFromHeader.value = newNickname;
+            } else {
+                newNickname = nicknameInputFromHeader.value.trim();
+            }
+
             if (newNickname) {
                 setUserNickname(newNickname);
-                // Custom alert instead of browser alert
                 showAlert('Успех!', 'Никнейм успешно сохранен!');
-                // If it's the nickname required modal, close it
+                // Close the nickname required modal if it's open
                 closeModal('nicknameRequiredModal');
+                // Re-enable interactions for the main page
+                document.getElementById('mainPage').style.pointerEvents = 'auto';
+                document.body.style.overflow = 'auto';
             } else {
                 showAlert('Ошибка', 'Пожалуйста, введите никнейм.');
             }
@@ -830,7 +843,11 @@
             const now = new Date().getTime();
             localStorage.setItem(NICKNAME_KEY + '_' + deviceId, JSON.stringify({ nickname }));
             localStorage.setItem(NICKNAME_LAST_SET_KEY + '_' + deviceId, now.toString());
+            // Ensure both nickname input fields are updated
             document.getElementById('nicknameInput').value = nickname;
+            if (document.getElementById('nicknameInputModal')) {
+                document.getElementById('nicknameInputModal').value = nickname;
+            }
         }
 
         // --- Custom Modal Functions ---
@@ -867,12 +884,22 @@
             // Disable main page interactions
             document.getElementById('mainPage').style.pointerEvents = 'none';
             document.body.style.overflow = 'hidden'; // Prevent scrolling
+
+            // Pre-fill the modal's nickname input if a nickname exists but is expired
+            const storedNickname = getUserNickname(); // This will return null if expired, but it was the last known
+            const lastKnownNickname = JSON.parse(localStorage.getItem(NICKNAME_KEY + '_' + getDeviceId()));
+            if (lastKnownNickname && lastKnownNickname.nickname) {
+                document.getElementById('nicknameInputModal').value = lastKnownNickname.nickname;
+            } else {
+                document.getElementById('nicknameInputModal').value = '';
+            }
+            document.getElementById('nicknameInputModal').focus();
         }
 
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
-            // Re-enable main page interactions if no other modals are open
-            if (!document.querySelector('.modal[style*="display: flex"]')) {
+            // Re-enable main page interactions only if the nickname is set AND no other modals are open
+            if (getUserNickname() && !document.querySelector('.modal[style*="display: flex"]')) {
                 document.getElementById('mainPage').style.pointerEvents = 'auto';
                 document.body.style.overflow = 'auto'; // Re-enable scrolling
             }
@@ -896,11 +923,11 @@
 
             if (storedNickname) {
                 nicknameInput.value = storedNickname;
-                // If a nickname exists, ensure UI is enabled
+                // If a nickname exists and is valid, ensure UI is enabled
                 document.getElementById('mainPage').style.pointerEvents = 'auto';
                 document.body.style.overflow = 'auto';
             } else {
-                // If no nickname, show the required modal and disable main UI
+                // If no valid nickname, show the required modal and disable main UI
                 showNicknameRequired();
             }
 
@@ -912,6 +939,9 @@
             if (urlParams.get('admin') === 'true') {
                 const modal = document.getElementById('adminModal');
                 modal.style.display = 'flex';
+                // Disable main page interactions while admin modal is open
+                document.getElementById('mainPage').style.pointerEvents = 'none';
+                document.body.style.overflow = 'hidden';
                 onValue(ref(database, 'adminPassword'), (snapshot) => {
                     window.adminPasswordFromFirebase = snapshot.val();
                 }, {
@@ -1255,17 +1285,18 @@
                             reader.onloadend = async () => {
                                 const base64Image = reader.result.split(',')[1]; // Remove "data:image/jpeg;base64," part
 
-                                // Send photo with caption
-                                const sendPhotoUrl = `https://api.telegram.org/bot${telegramBotToken}/sendPhoto`;
+                                // Send photo with caption using a direct POST request
+                                // Note: This uses Blob for cleaner API interaction, but still involves Base64 conversion
+                                const blob = await fetch(reader.result).then(res => res.blob());
                                 const formData = new FormData();
                                 formData.append('chat_id', telegramChatId);
-                                formData.append('photo', base64Image); // Telegram accepts Base64 if sent as a file
+                                formData.append('photo', blob, currentImageFile.name); // Send as a file
                                 formData.append('caption', telegramMessage); // Use the message as a caption
                                 formData.append('parse_mode', 'Markdown'); // For markdown in caption
 
-                                fetch(sendPhotoUrl, {
+                                fetch(`https://api.telegram.org/bot${telegramBotToken}/sendPhoto`, {
                                     method: 'POST',
-                                    body: formData // Use FormData for file uploads
+                                    body: formData
                                 })
                                 .then(response => response.json())
                                 .then(data => {
@@ -1420,7 +1451,7 @@
             <p>Пожалуйста, задайте ваш никнейм, чтобы пользоваться всеми функциями форума.</p>
             <input type="text" id="nicknameInputModal" placeholder="Введите ваш ник">
             <div class="modal-buttons">
-                <button onclick="saveNicknameFromModal()">Сохранить ник</button>
+                <button onclick="saveNickname()">Сохранить ник</button>
             </div>
         </div>
     </div>
@@ -1461,15 +1492,6 @@
     <footer class="footer">
         Created by sashok(xqss) with <i class="material-icons">favorite</i>
     </footer>
-
-    <script>
-        // Move saveNicknameFromModal here so it can access global saveNickname and nicknameInput
-        function saveNicknameFromModal() {
-            const nicknameInputModal = document.getElementById('nicknameInputModal');
-            document.getElementById('nicknameInput').value = nicknameInputModal.value; // Sync with header input
-            saveNickname(); // Use the existing saveNickname logic
-        }
-    </script>
 
 </body>
 </html>

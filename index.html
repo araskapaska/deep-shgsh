@@ -10,7 +10,7 @@
     <style>
         :root {
             --background-color: #2e282d;
-            --button-color: #49204d;
+            --button-color: #49204d; /* Main button purple */
             --branch-color: #120d11;
             --button-text-color: #ecb4eb;
             --branch-text-color: #ebdfe6;
@@ -70,6 +70,25 @@
             background-color: var(--red-button-hover);
         }
 
+        /* Specific style for the close chat button to remove border */
+        #closeChatButton {
+            border: none;
+            background: none;
+            box-shadow: none;
+            padding: 0;
+            color: var(--branch-text-color);
+            width: auto;
+            height: auto;
+            font-size: 24px;
+        }
+        #closeChatButton:hover {
+            background: none;
+            transform: none;
+            box-shadow: none;
+            color: var(--red-button-hover);
+        }
+
+
         .header {
             display: flex;
             align-items: center;
@@ -116,23 +135,24 @@
             margin-top: 10px;
             width: 100%;
             display: flex;
-            align-items: center; /* Vertically align items */
+            align-items: center;
             justify-content: center;
-            position: relative; /* For icon positioning */
+            position: relative;
         }
 
         .search-container .material-icons {
             position: absolute;
-            left: 25px; /* Adjust as needed */
+            left: 25px;
             color: var(--branch-text-color);
             font-size: 20px;
             top: 50%;
             transform: translateY(-50%);
+            z-index: 1;
         }
 
         .search-container input {
             width: calc(100% - 40px);
-            padding: 10px 10px 10px 40px; /* Add padding for icon */
+            padding: 10px 10px 10px 40px;
             border-radius: 20px;
             border: 1px solid var(--border-color);
             background-color: var(--input-background);
@@ -247,12 +267,12 @@
         .support-button-fab {
             position: fixed;
             bottom: 30px;
-            left: 30px; /* Position on the left */
+            left: 30px;
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background-color: #007bff; /* Blue color for support */
-            color: white;
+            background-color: var(--button-color); /* Now purple */
+            color: var(--button-text-color);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -260,11 +280,11 @@
             box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
             transition: background-color 0.3s ease, transform 0.2s ease;
             z-index: 1000;
-            border: 1px solid #0056b3;
+            border: 1px solid var(--border-color);
         }
 
         .support-button-fab:hover {
-            background-color: #0056b3;
+            background-color: #5d2862;
             transform: translateY(-3px);
             box-shadow: 0 10px 18px rgba(0, 0, 0, 0.4);
         }
@@ -425,6 +445,7 @@
             color: #e0647c;
         }
 
+        /* Generic Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -449,6 +470,27 @@
             max-width: 400px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.5);
             text-align: center;
+            position: relative; /* For the close icon if needed */
+        }
+        .modal-content.fixed-height {
+            height: 80vh; /* Adjust height as needed */
+            max-height: 600px;
+            max-width: 500px;
+            width: 90%;
+            display: flex; /* Make it a flex container */
+            flex-direction: column; /* Stack children vertically */
+        }
+
+
+        .modal-content h2 {
+            color: var(--branch-text-color);
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+        .modal-content p {
+            color: var(--branch-text-color);
+            margin-bottom: 20px;
         }
 
         .modal-content input {
@@ -462,18 +504,31 @@
             font-family: var(--font-medium);
         }
 
-        .modal-content button {
-            margin-top: 10px;
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
         }
+
+        /* Nickname Required Modal specific */
+        #nicknameRequiredModal .modal-content {
+            padding: 30px;
+            text-align: center;
+        }
+        #nicknameRequiredModal .modal-content h2 {
+            font-size: 26px;
+            color: #ffda00; /* Yellow for emphasis */
+        }
+        #nicknameRequiredModal .modal-content p {
+            font-size: 18px;
+            margin-bottom: 25px;
+        }
+
 
         /* Support Chat Modal Specific Styles */
         .chat-modal-content {
-            display: flex;
-            flex-direction: column;
-            height: 80vh; /* Adjust height as needed */
-            max-height: 600px;
-            max-width: 500px;
-            width: 90%;
+            /* Inherits fixed-height properties from .modal-content.fixed-height */
         }
 
         .chat-header {
@@ -513,13 +568,13 @@
         }
 
         .chat-message.sent {
-            background-color: var(--button-color);
+            background-color: var(--button-color); /* Purple */
             align-self: flex-end;
             color: var(--button-text-color);
         }
 
         .chat-message.received {
-            background-color: var(--border-color);
+            background-color: var(--border-color); /* Border color for received */
             align-self: flex-start;
             color: var(--branch-text-color);
         }
@@ -545,11 +600,49 @@
             display: block;
         }
 
+        /* Image preview for chat */
+        #imagePreviewContainer {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .image-preview-item {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .image-preview-item .remove-image {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
 
         .chat-input-area {
             display: flex;
             gap: 10px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .chat-input-area input[type="text"] {
@@ -560,6 +653,7 @@
             background-color: var(--input-background);
             color: var(--input-text-color);
             font-family: var(--font-medium);
+            min-width: 150px;
         }
 
         .chat-input-area button {
@@ -569,23 +663,15 @@
             height: 40px;
             font-size: 20px;
             flex-shrink: 0;
+            background-color: var(--button-color); /* Now purple */
+            border-color: var(--border-color);
         }
+        .chat-input-area button:hover {
+            background-color: #5d2862;
+        }
+
         .chat-input-area button .material-icons {
             font-size: 20px;
-        }
-        #attachFileButton {
-            background-color: #555;
-            border-color: #777;
-        }
-        #attachFileButton:hover {
-            background-color: #666;
-        }
-        #sendMessageButton {
-            background-color: #007bff;
-            border-color: #0056b3;
-        }
-        #sendMessageButton:hover {
-            background-color: #0056b3;
         }
 
 
@@ -616,10 +702,10 @@
 
             .search-container input {
                 width: 100%;
-                padding-left: 40px; /* Ensure space for icon */
+                padding-left: 40px;
             }
             .search-container .material-icons {
-                left: 20px; /* Adjust for smaller screens */
+                left: 20px;
             }
 
             .fab {
@@ -658,22 +744,28 @@
             .form-group textarea {
                 width: calc(100% - 20px);
             }
-            .chat-modal-content {
+            .modal-content.fixed-height {
                 height: 90vh;
+            }
+            .chat-input-area {
+                flex-wrap: wrap;
+            }
+            .chat-input-area button {
+                width: 40px;
+                height: 40px;
             }
         }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+        import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCb5-7-7EvtqO_n759treZM2wZyS0rEmyQ",
             authDomain: "hgsh-f13c4.firebaseapp.com",
             databaseURL: "https://hgsh-f13c4-default-rtdb.firebaseio.com",
             projectId: "hgsh-f13c4",
-            storageBucket: "gs://hgsh-f13c4.appspot.com", // Make sure this is correct for Storage
+            storageBucket: "gs://hgsh-f13c4.appspot.com",
             messagingSenderId: "633183463703",
             appId: "1:633183463703:web:e0ba7723fa419f94b1ef52",
             measurementId: "G-N732H8MNYF"
@@ -681,12 +773,13 @@
 
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
-        const storage = getStorage(app);
 
         window.allThreads = [];
         window.isAdmin = false;
         window.adminPasswordFromFirebase = '';
-        let telegramBotToken = ''; // To store the bot token
+        let telegramBotToken = '';
+        // IMPORTANT: Replace with your actual Telegram admin chat ID where bot messages should go
+        let telegramChatId = '-1002194605963'; 
 
         function getDeviceId() {
             let deviceId = localStorage.getItem('deviceId');
@@ -699,7 +792,7 @@
 
         const NICKNAME_KEY = 'userNickname';
         const NICKNAME_LAST_SET_KEY = 'nicknameLastSet';
-        const NICKNAME_EXPIRATION_DAYS = 7;
+        const NICKNAME_EXPIRATION_DAYS = 7; // Nickname lasts 7 days
 
         function getUserNickname() {
             const deviceId = getDeviceId();
@@ -723,9 +816,12 @@
             const newNickname = nicknameInput.value.trim();
             if (newNickname) {
                 setUserNickname(newNickname);
-                alert('Ник сохранен!');
+                // Custom alert instead of browser alert
+                showAlert('Успех!', 'Никнейм успешно сохранен!');
+                // If it's the nickname required modal, close it
+                closeModal('nicknameRequiredModal');
             } else {
-                alert('Пожалуйста, введите ник.');
+                showAlert('Ошибка', 'Пожалуйста, введите никнейм.');
             }
         }
 
@@ -737,14 +833,75 @@
             document.getElementById('nicknameInput').value = nickname;
         }
 
+        // --- Custom Modal Functions ---
+        let confirmResolver = null;
+
+        function showAlert(title, message) {
+            const modal = document.getElementById('alertModal');
+            document.getElementById('alertModalTitle').textContent = title;
+            document.getElementById('alertModalMessage').textContent = message;
+            modal.style.display = 'flex';
+        }
+
+        function showConfirm(title, message) {
+            return new Promise(resolve => {
+                confirmResolver = resolve;
+                const modal = document.getElementById('confirmModal');
+                document.getElementById('confirmModalTitle').textContent = title;
+                document.getElementById('confirmModalMessage').textContent = message;
+                modal.style.display = 'flex';
+            });
+        }
+
+        function confirmAction(result) {
+            if (confirmResolver) {
+                confirmResolver(result);
+                confirmResolver = null;
+            }
+            closeModal('confirmModal');
+        }
+
+        function showNicknameRequired() {
+            const modal = document.getElementById('nicknameRequiredModal');
+            modal.style.display = 'flex';
+            // Disable main page interactions
+            document.getElementById('mainPage').style.pointerEvents = 'none';
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            // Re-enable main page interactions if no other modals are open
+            if (!document.querySelector('.modal[style*="display: flex"]')) {
+                document.getElementById('mainPage').style.pointerEvents = 'auto';
+                document.body.style.overflow = 'auto'; // Re-enable scrolling
+            }
+        }
+
+        // Helper to check nickname before proceeding with actions
+        function checkNicknameAndProceed(actionFunction, ...args) {
+            if (!getUserNickname()) {
+                showNicknameRequired();
+                return false;
+            }
+            actionFunction(...args);
+            return true;
+        }
+
+        // --- Event Listeners and Initial Load ---
         document.addEventListener('DOMContentLoaded', () => {
             const nicknameInput = document.getElementById('nicknameInput');
             const saveNicknameButton = document.getElementById('saveNicknameButton');
             const storedNickname = getUserNickname();
+
             if (storedNickname) {
                 nicknameInput.value = storedNickname;
+                // If a nickname exists, ensure UI is enabled
+                document.getElementById('mainPage').style.pointerEvents = 'auto';
+                document.body.style.overflow = 'auto';
             } else {
-                nicknameInput.value = '';
+                // If no nickname, show the required modal and disable main UI
+                showNicknameRequired();
             }
 
             if (saveNicknameButton) {
@@ -765,7 +922,7 @@
             // Fetch Telegram Bot Token
             onValue(ref(database, 'bot'), (snapshot) => {
                 telegramBotToken = snapshot.val();
-                console.log("Telegram Bot Token fetched (for backend use):", telegramBotToken ? "********" : "Not found");
+                console.log("Telegram Bot Token fetched (CAUTION: FOR DIRECT CLIENT-SIDE USE!):", telegramBotToken ? "********" : "Not found");
             }, {
                 onlyOnce: true
             });
@@ -775,15 +932,14 @@
 
             // Support Chat Event Listeners
             const supportButton = document.getElementById('supportButton');
-            const chatModal = document.getElementById('chatModal');
             const closeChatButton = document.getElementById('closeChatButton');
             const sendMessageButton = document.getElementById('sendMessageButton');
             const chatMessageInput = document.getElementById('chatMessageInput');
             const attachFileInput = document.getElementById('attachFileInput');
             const attachFileButton = document.getElementById('attachFileButton');
 
-            if (supportButton) supportButton.addEventListener('click', openChatModal);
-            if (closeChatButton) closeChatButton.addEventListener('click', closeChatModal);
+            if (supportButton) supportButton.addEventListener('click', () => checkNicknameAndProceed(openChatModal));
+            if (closeChatButton) closeChatButton.addEventListener('click', () => closeModal('chatModal'));
             if (sendMessageButton) sendMessageButton.addEventListener('click', sendChatMessage);
             if (chatMessageInput) chatMessageInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -793,6 +949,9 @@
             });
             if (attachFileButton) attachFileButton.addEventListener('click', () => attachFileInput.click());
             if (attachFileInput) attachFileInput.addEventListener('change', handleFileAttach);
+
+            // Global functions for buttons that need nickname check
+            window.showNewThreadPage = () => checkNicknameAndProceed(_showNewThreadPage);
         });
 
 
@@ -800,11 +959,11 @@
             const enteredPassword = document.getElementById('adminPasswordInput').value;
             if (enteredPassword === window.adminPasswordFromFirebase) {
                 window.isAdmin = true;
-                document.getElementById('adminModal').style.display = 'none';
-                alert('Admin mode activated!');
+                closeModal('adminModal'); // Use custom modal close
+                showAlert('Успех!', 'Режим администратора активирован!');
                 loadThreads();
             } else {
-                alert('Incorrect password!');
+                showAlert('Ошибка', 'Неверный пароль!');
             }
         };
 
@@ -849,9 +1008,19 @@
                     const deleteButton = document.createElement('button');
                     deleteButton.className = 'delete-button red-button';
                     deleteButton.innerHTML = `<i class="material-icons">delete</i>`;
-                    deleteButton.onclick = (event) => {
+                    deleteButton.onclick = async (event) => {
                         event.stopPropagation();
-                        window.deleteThread(thread.id);
+                        const confirmed = await showConfirm('Подтверждение', 'Вы уверены, что хотите удалить эту ветку?');
+                        if (confirmed) {
+                            remove(ref(database, 'threads/' + thread.id))
+                                .then(() => {
+                                    showAlert('Успех!', 'Ветка успешно удалена!');
+                                })
+                                .catch((error) => {
+                                    console.error("Error removing thread: ", error);
+                                    showAlert('Ошибка', 'Ошибка при удалении ветки.');
+                                });
+                        }
                     };
                     threadCard.appendChild(deleteButton);
                 }
@@ -874,10 +1043,16 @@
         window.publishThread = function() {
             const title = document.getElementById('newThreadTitle').value;
             const content = document.getElementById('newThreadContent').value;
-            const author = getUserNickname() || 'Аноним';
+            const author = getUserNickname(); // Get user's nickname, no anonymous option
+
+            // Nickname is enforced globally, so this check is mostly for safety.
+            if (!author) {
+                showNicknameRequired();
+                return;
+            }
 
             if (title.trim() === '' || content.trim() === '') {
-                alert('Пожалуйста, заполните оба поля: Заголовок и Содержание.');
+                showAlert('Ошибка', 'Пожалуйста, заполните оба поля: Заголовок и Содержание.');
                 return;
             }
 
@@ -888,27 +1063,14 @@
                 author: author,
                 timestamp: Date.now()
             }).then(() => {
-                alert('Ветка успешно опубликована!');
+                showAlert('Успех!', 'Ветка успешно опубликована!');
                 window.hideNewThreadPage();
                 document.getElementById('newThreadTitle').value = '';
                 document.getElementById('newThreadContent').value = '';
             }).catch((error) => {
                 console.error("Error publishing thread: ", error);
-                alert('Ошибка при публикации ветки.');
+                showAlert('Ошибка', 'Ошибка при публикации ветки.');
             });
-        };
-
-        window.deleteThread = function(threadId) {
-            if (confirm('Вы уверены, что хотите удалить эту ветку?')) {
-                remove(ref(database, 'threads/' + threadId))
-                    .then(() => {
-                        alert('Ветка успешно удалена!');
-                    })
-                    .catch((error) => {
-                        console.error("Error removing thread: ", error);
-                        alert('Ошибка при удалении ветки.');
-                    });
-            }
         };
 
         window.openThread = function(title, content, author, timestamp) {
@@ -925,7 +1087,7 @@
                 hour: '2-digit',
                 minute: '2-digit'
             });
-            document.getElementById('threadMeta').textContent = `Создана в ${formattedDate} автором ${author || 'Аноним'}`;
+            document.getElementById('threadMeta').textContent = `Создана в ${formattedDate} автором ${author || 'Аноним'}`; // Still show "Аноним" if old thread had no author
 
             window.currentThreadData = { title, content, author, formattedDate };
         };
@@ -935,12 +1097,13 @@
             document.getElementById('threadPage').style.display = 'none';
         };
 
-        window.showNewThreadPage = function() {
+        // Internal function called by checkNicknameAndProceed
+        function _showNewThreadPage() {
             document.getElementById('mainPage').style.display = 'none';
             document.getElementById('newThreadPage').style.display = 'flex';
             document.getElementById('newThreadTitle').value = '';
             document.getElementById('newThreadContent').value = '';
-        };
+        }
 
         window.hideNewThreadPage = function() {
             document.getElementById('mainPage').style.display = 'flex';
@@ -952,24 +1115,27 @@
                 const { title, content, author, formattedDate } = window.currentThreadData;
                 const textToCopy = `${title}\n\n${content}\n\nСоздана в ${formattedDate} автором ${author || 'Аноним'}`;
                 navigator.clipboard.writeText(textToCopy).then(() => {
-                    alert('Содержание ветки скопировано!');
+                    showAlert('Успех!', 'Содержание ветки скопировано!');
                 }).catch(err => {
                     console.error('Failed to copy text: ', err);
-                    alert('Не удалось скопировать текст.');
+                    showAlert('Ошибка', 'Не удалось скопировать текст.');
                 });
             }
         };
 
         // --- Support Chat Functions ---
+        let currentImageFile = null; // Stores the file object for the image to be sent
+
         function openChatModal() {
-            document.getElementById('chatModal').style.display = 'flex';
+            const chatModal = document.getElementById('chatModal');
+            chatModal.style.display = 'flex';
             const deviceId = getDeviceId();
             const chatMessagesRef = ref(database, `supportChats/${deviceId}/messages`);
             const chatMessagesContainer = document.getElementById('chatMessages');
-            chatMessagesContainer.innerHTML = ''; // Clear previous messages
+            chatMessagesContainer.innerHTML = '';
 
             onValue(chatMessagesRef, (snapshot) => {
-                chatMessagesContainer.innerHTML = ''; // Clear and re-render to avoid duplicates on update
+                chatMessagesContainer.innerHTML = '';
                 const messagesData = snapshot.val();
                 if (messagesData) {
                     Object.values(messagesData).forEach(msg => {
@@ -987,7 +1153,7 @@
                             messageElement.appendChild(contentElement);
                         }
 
-                        if (msg.attachmentUrl) {
+                        if (msg.attachmentUrl) { // This will only show if admin replies include image URLs
                             const imgElement = document.createElement('img');
                             imgElement.src = msg.attachmentUrl;
                             imgElement.alt = 'Вложение';
@@ -1001,93 +1167,165 @@
 
                         chatMessagesContainer.appendChild(messageElement);
                     });
-                    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight; // Scroll to bottom
+                    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
                 }
             });
         }
 
-        function closeChatModal() {
-            document.getElementById('chatModal').style.display = 'none';
-        }
-
-        let currentAttachedFile = null;
-
         function handleFileAttach(event) {
             const file = event.target.files[0];
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            imagePreviewContainer.innerHTML = '';
+
             if (file) {
                 if (!file.type.startsWith('image/')) {
-                    alert('Пожалуйста, выберите файл изображения.');
-                    currentAttachedFile = null;
+                    showAlert('Ошибка', 'Пожалуйста, выберите файл изображения.');
+                    currentImageFile = null;
                     return;
                 }
-                currentAttachedFile = file;
-                alert(`Файл "${file.name}" выбран для отправки.`);
+                currentImageFile = file;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'image-preview-item';
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = 'Предпросмотр изображения';
+                    previewItem.appendChild(img);
+
+                    const removeButton = document.createElement('span');
+                    removeButton.className = 'remove-image material-icons';
+                    removeButton.textContent = 'close';
+                    removeButton.onclick = () => {
+                        currentImageFile = null;
+                        document.getElementById('attachFileInput').value = '';
+                        imagePreviewContainer.innerHTML = '';
+                    };
+                    previewItem.appendChild(removeButton);
+                    
+                    imagePreviewContainer.appendChild(previewItem);
+                };
+                reader.readAsDataURL(file);
             } else {
-                currentAttachedFile = null;
+                currentImageFile = null;
             }
         }
 
         async function sendChatMessage() {
             const chatMessageInput = document.getElementById('chatMessageInput');
             const messageText = chatMessageInput.value.trim();
-            const author = getUserNickname() || 'Аноним';
+            const author = getUserNickname();
             const deviceId = getDeviceId();
 
-            if (!messageText && !currentAttachedFile) {
-                alert('Пожалуйста, введите сообщение или прикрепите файл.');
+            if (!author) { // Should be caught by checkNicknameAndProceed, but a failsafe
+                showNicknameRequired();
                 return;
             }
 
-            let attachmentUrl = null;
-
-            if (currentAttachedFile) {
-                try {
-                    const storageRefPath = storageRef(storage, `support_attachments/${deviceId}/${Date.now()}_${currentAttachedFile.name}`);
-                    const uploadTask = await uploadBytes(storageRefPath, currentAttachedFile);
-                    attachmentUrl = await getDownloadURL(uploadTask.ref);
-                    console.log('File uploaded:', attachmentUrl);
-                } catch (error) {
-                    console.error("Error uploading file:", error);
-                    alert('Не удалось загрузить файл.');
-                    return;
-                }
+            if (!messageText && !currentImageFile) {
+                showAlert('Ошибка', 'Пожалуйста, введите сообщение или прикрепите файл.');
+                return;
             }
 
+            // Save text message to Firebase (for chat history / admin viewing)
+            // No image data saved here for client-side sent images.
             const newMessageRef = push(ref(database, `supportChats/${deviceId}/messages`));
             const messageData = {
                 author: author,
                 content: messageText,
-                sender: 'user', // Indicates this message is from the user
+                sender: 'user',
                 timestamp: Date.now(),
-                attachmentUrl: attachmentUrl
             };
 
-            set(newMessageRef, messageData)
+            await set(newMessageRef, messageData)
                 .then(() => {
-                    console.log("Message sent to Firebase:", messageData);
+                    console.log("Text message (and image metadata) sent to Firebase:", messageData);
                     chatMessageInput.value = '';
-                    currentAttachedFile = null; // Clear attached file after sending
-                    document.getElementById('attachFileInput').value = ''; // Clear file input
-                    // TODO: Here you would ideally send this message to your backend service
-                    // Your backend service would then securely forward it to the Telegram bot
-                    // For example:
-                    // if (telegramBotToken) {
-                    //     fetch('/api/sendToTelegram', {
-                    //         method: 'POST',
-                    //         headers: { 'Content-Type': 'application/json' },
-                    //         body: JSON.stringify({
-                    //             chatId: 'YOUR_ADMIN_CHAT_ID', // You need to configure this
-                    //             message: `New support message from ${author} (Device ID: ${deviceId}):\n${messageText}${attachmentUrl ? `\nAttachment: ${attachmentUrl}` : ''}`
-                    //         })
-                    //     });
-                    // }
+                    
+                    // --- DIRECT TELEGRAM BOT SENDING (CAUTION: TOKEN EXPOSURE!) ---
+                    if (telegramBotToken && telegramChatId) {
+                        let telegramMessage = `*Новое сообщение от ${author}* (ID: \`${deviceId}\`):\n\n${messageText}`;
+                        
+                        if (currentImageFile) {
+                            // Convert image to Base64
+                            const reader = new FileReader();
+                            reader.readAsDataURL(currentImageFile);
+                            reader.onloadend = async () => {
+                                const base64Image = reader.result.split(',')[1]; // Remove "data:image/jpeg;base64," part
+
+                                // Send photo with caption
+                                const sendPhotoUrl = `https://api.telegram.org/bot${telegramBotToken}/sendPhoto`;
+                                const formData = new FormData();
+                                formData.append('chat_id', telegramChatId);
+                                formData.append('photo', base64Image); // Telegram accepts Base64 if sent as a file
+                                formData.append('caption', telegramMessage); // Use the message as a caption
+                                formData.append('parse_mode', 'Markdown'); // For markdown in caption
+
+                                fetch(sendPhotoUrl, {
+                                    method: 'POST',
+                                    body: formData // Use FormData for file uploads
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (!data.ok) {
+                                        console.error('Telegram API Error (sendPhoto):', data);
+                                        showAlert('Ошибка', `Не удалось отправить изображение в Telegram: ${data.description || 'Неизвестная ошибка'}`);
+                                    } else {
+                                        console.log('Image sent to Telegram:', data);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Network Error sending image to Telegram:', error);
+                                    showAlert('Ошибка', 'Сетевая ошибка при отправке изображения в Telegram.');
+                                });
+                            };
+                            reader.onerror = (error) => {
+                                console.error('Error reading file for Base64:', error);
+                                showAlert('Ошибка', 'Не удалось прочитать файл для отправки.');
+                            };
+                        } else if (messageText) {
+                            // Only send text if no image
+                            const sendMessageUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
+                            fetch(sendMessageUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    chat_id: telegramChatId,
+                                    text: telegramMessage,
+                                    parse_mode: 'Markdown'
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (!data.ok) {
+                                    console.error('Telegram API Error (sendMessage):', data);
+                                    showAlert('Ошибка', `Не удалось отправить сообщение в Telegram: ${data.description || 'Неизвестная ошибка'}`);
+                                } else {
+                                    console.log('Text message sent to Telegram:', data);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Network Error sending message to Telegram:', error);
+                                showAlert('Ошибка', 'Сетевая ошибка при отправке сообщения в Telegram.');
+                            });
+                        }
+                    } else {
+                        console.warn('Telegram bot token or chat ID not available. Message not sent to Telegram.');
+                        // showAlert('Внимание', 'Токен Telegram-бота или ID чата недоступны. Сообщение не отправлено в Telegram.');
+                    }
+
+                    // Clear attachment state and UI after processing for Telegram
+                    currentImageFile = null;
+                    document.getElementById('attachFileInput').value = '';
+                    document.getElementById('imagePreviewContainer').innerHTML = '';
                 })
                 .catch((error) => {
                     console.error("Error sending message to Firebase:", error);
-                    alert('Ошибка при отправке сообщения.');
+                    showAlert('Ошибка', 'Ошибка при отправке сообщения.');
                 });
         }
-
     </script>
 </head>
 <body>
@@ -1155,6 +1393,38 @@
         </div>
     </div>
 
+    <div id="alertModal" class="modal">
+        <div class="modal-content">
+            <h2 id="alertModalTitle"></h2>
+            <p id="alertModalMessage"></p>
+            <div class="modal-buttons">
+                <button onclick="closeModal('alertModal')">ОК</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h2 id="confirmModalTitle"></h2>
+            <p id="confirmModalMessage"></p>
+            <div class="modal-buttons">
+                <button onclick="confirmAction(true)">Да</button>
+                <button onclick="confirmAction(false)">Нет</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="nicknameRequiredModal" class="modal">
+        <div class="modal-content">
+            <h2>Никнейм требуется!</h2>
+            <p>Пожалуйста, задайте ваш никнейм, чтобы пользоваться всеми функциями форума.</p>
+            <input type="text" id="nicknameInputModal" placeholder="Введите ваш ник">
+            <div class="modal-buttons">
+                <button onclick="saveNicknameFromModal()">Сохранить ник</button>
+            </div>
+        </div>
+    </div>
+
     <div id="adminModal" class="modal">
         <div class="modal-content">
             <h2>Введите пароль администратора</h2>
@@ -1164,14 +1434,16 @@
     </div>
 
     <div id="chatModal" class="modal">
-        <div class="modal-content chat-modal-content">
+        <div class="modal-content chat-modal-content fixed-height">
             <div class="chat-header">
                 <h2>Поддержка</h2>
-                <button class="red-button" id="closeChatButton">
+                <button id="closeChatButton" type="button">
                     <i class="material-icons">close</i>
                 </button>
             </div>
             <div class="chat-messages" id="chatMessages">
+                </div>
+            <div id="imagePreviewContainer">
                 </div>
             <div class="chat-input-area">
                 <input type="text" id="chatMessageInput" placeholder="Введите сообщение...">
@@ -1179,7 +1451,7 @@
                 <button id="attachFileButton" type="button">
                     <i class="material-icons">attach_file</i>
                 </button>
-                <button id="sendMessageButton">
+                <button id="sendMessageButton" type="button">
                     <i class="material-icons">send</i>
                 </button>
             </div>
@@ -1189,6 +1461,15 @@
     <footer class="footer">
         Created by sashok(xqss) with <i class="material-icons">favorite</i>
     </footer>
+
+    <script>
+        // Move saveNicknameFromModal here so it can access global saveNickname and nicknameInput
+        function saveNicknameFromModal() {
+            const nicknameInputModal = document.getElementById('nicknameInputModal');
+            document.getElementById('nicknameInput').value = nicknameInputModal.value; // Sync with header input
+            saveNickname(); // Use the existing saveNickname logic
+        }
+    </script>
 
 </body>
 </html>

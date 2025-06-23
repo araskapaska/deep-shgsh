@@ -816,15 +816,13 @@
         }
 
         // Expose saveNickname globally
-        window.saveNickname = function() { // Added 'window.'
-            // Determine which input field to read from
+        window.saveNickname = function() {
             const nicknameInputFromHeader = document.getElementById('nicknameInput');
             const nicknameInputFromModal = document.getElementById('nicknameInputModal');
             
             let newNickname;
             if (nicknameInputFromModal && nicknameInputFromModal.value.trim() !== '') {
                 newNickname = nicknameInputFromModal.value.trim();
-                // If saving from modal, update the header input too for consistency
                 nicknameInputFromHeader.value = newNickname;
             } else {
                 newNickname = nicknameInputFromHeader.value.trim();
@@ -833,9 +831,7 @@
             if (newNickname) {
                 setUserNickname(newNickname);
                 showAlert('Успех!', 'Никнейм успешно сохранен!');
-                // Close the nickname required modal if it's open
                 closeModal('nicknameRequiredModal');
-                // Re-enable interactions for the main page
                 document.getElementById('mainPage').style.pointerEvents = 'auto';
                 document.body.style.overflow = 'auto';
             } else {
@@ -848,7 +844,6 @@
             const now = new Date().getTime();
             localStorage.setItem(NICKNAME_KEY + '_' + deviceId, JSON.stringify({ nickname }));
             localStorage.setItem(NICKNAME_LAST_SET_KEY + '_' + deviceId, now.toString());
-            // Ensure both nickname input fields are updated
             document.getElementById('nicknameInput').value = nickname;
             if (document.getElementById('nicknameInputModal')) {
                 document.getElementById('nicknameInputModal').value = nickname;
@@ -858,14 +853,14 @@
         // --- Custom Modal Functions ---
         let confirmResolver = null;
 
-        window.showAlert = function(title, message) { // Added 'window.'
+        window.showAlert = function(title, message) {
             const modal = document.getElementById('alertModal');
             document.getElementById('alertModalTitle').textContent = title;
             document.getElementById('alertModalMessage').textContent = message;
             modal.style.display = 'flex';
         };
 
-        window.showConfirm = function(title, message) { // Added 'window.'
+        window.showConfirm = function(title, message) {
             return new Promise(resolve => {
                 confirmResolver = resolve;
                 const modal = document.getElementById('confirmModal');
@@ -875,7 +870,7 @@
             });
         };
 
-        window.confirmAction = function(result) { // Added 'window.'
+        window.confirmAction = function(result) {
             if (confirmResolver) {
                 confirmResolver(result);
                 confirmResolver = null;
@@ -883,15 +878,13 @@
             closeModal('confirmModal');
         };
 
-        window.showNicknameRequired = function() { // Added 'window.'
+        window.showNicknameRequired = function() {
             const modal = document.getElementById('nicknameRequiredModal');
             modal.style.display = 'flex';
-            // Disable main page interactions
             document.getElementById('mainPage').style.pointerEvents = 'none';
-            document.body.style.overflow = 'hidden'; // Prevent scrolling
+            document.body.style.overflow = 'hidden';
 
-            // Pre-fill the modal's nickname input if a nickname exists but is expired
-            const storedNickname = getUserNickname(); // This will return null if expired, but it was the last known
+            const storedNickname = getUserNickname();
             const lastKnownNickname = JSON.parse(localStorage.getItem(NICKNAME_KEY + '_' + getDeviceId()));
             if (lastKnownNickname && lastKnownNickname.nickname) {
                 document.getElementById('nicknameInputModal').value = lastKnownNickname.nickname;
@@ -901,12 +894,11 @@
             document.getElementById('nicknameInputModal').focus();
         };
 
-        window.closeModal = function(modalId) { // Added 'window.'
+        window.closeModal = function(modalId) {
             document.getElementById(modalId).style.display = 'none';
-            // Re-enable main page interactions only if the nickname is set AND no other modals are open
             if (getUserNickname() && !document.querySelector('.modal[style*="display: flex"]')) {
                 document.getElementById('mainPage').style.pointerEvents = 'auto';
-                document.body.style.overflow = 'auto'; // Re-enable scrolling
+                document.body.style.overflow = 'auto';
             }
         };
 
@@ -928,23 +920,20 @@
 
             if (storedNickname) {
                 nicknameInput.value = storedNickname;
-                // If a nickname exists and is valid, ensure UI is enabled
                 document.getElementById('mainPage').style.pointerEvents = 'auto';
                 document.body.style.overflow = 'auto';
             } else {
-                // If no valid nickname, show the required modal and disable main UI
                 showNicknameRequired();
             }
 
             if (saveNicknameButton) {
-                saveNicknameButton.addEventListener('click', window.saveNickname); // Changed to window.saveNickname
+                saveNicknameButton.addEventListener('click', window.saveNickname);
             }
 
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('admin') === 'true') {
                 const modal = document.getElementById('adminModal');
                 modal.style.display = 'flex';
-                // Disable main page interactions while admin modal is open
                 document.getElementById('mainPage').style.pointerEvents = 'none';
                 document.body.style.overflow = 'hidden';
                 onValue(ref(database, 'adminPassword'), (snapshot) => {
@@ -975,11 +964,12 @@
 
             if (supportButton) supportButton.addEventListener('click', () => checkNicknameAndProceed(openChatModal));
             if (closeChatButton) closeChatButton.addEventListener('click', () => closeModal('chatModal'));
-            if (sendMessageButton) sendMessageButton.addEventListener('click', sendChatMessage);
+            // Corrected `onclick` to event listener for `sendMessageButton`
+            if (sendMessageButton) sendMessageButton.addEventListener('click', window.sendChatMessage);
             if (chatMessageInput) chatMessageInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    sendChatMessage();
+                    window.sendChatMessage(); // Call global function
                 }
             });
             if (attachFileButton) attachFileButton.addEventListener('click', () => attachFileInput.click());
@@ -994,7 +984,7 @@
             const enteredPassword = document.getElementById('adminPasswordInput').value;
             if (enteredPassword === window.adminPasswordFromFirebase) {
                 window.isAdmin = true;
-                closeModal('adminModal'); // Use custom modal close
+                closeModal('adminModal');
                 showAlert('Успех!', 'Режим администратора активирован!');
                 loadThreads();
             } else {
@@ -1031,7 +1021,7 @@
                 threadCard.onclick = () => window.openThread(thread.title, thread.content, thread.author, thread.timestamp);
 
                 const titleElement = document.createElement('h2');
-                // Changed from `*${thread.title}*` to `${thread.title}` to remove asterisks
+                // Removed asterisks from title display
                 titleElement.innerHTML = `<i class="material-icons">account_circle</i> ${thread.author || 'Аноним'} | ${thread.title}`;
                 
                 const contentElement = document.createElement('p');
@@ -1079,9 +1069,8 @@
         window.publishThread = function() {
             const title = document.getElementById('newThreadTitle').value;
             const content = document.getElementById('newThreadContent').value;
-            const author = getUserNickname(); // Get user's nickname, no anonymous option
+            const author = getUserNickname();
 
-            // Nickname is enforced globally, so this check is mostly for safety.
             if (!author) {
                 showNicknameRequired();
                 return;
@@ -1123,7 +1112,7 @@
                 hour: '2-digit',
                 minute: '2-digit'
             });
-            document.getElementById('threadMeta').textContent = `Создана в ${formattedDate} автором ${author || 'Аноним'}`; // Still show "Аноним" if old thread had no author
+            document.getElementById('threadMeta').textContent = `Создана в ${formattedDate} автором ${author || 'Аноним'}`;
 
             window.currentThreadData = { title, content, author, formattedDate };
         };
@@ -1177,15 +1166,14 @@
                     Object.values(messagesData).forEach(msg => {
                         const messageElement = document.createElement('div');
                         // Determine if the message is from an admin ID
-                        const isMessageFromAdmin = adminIds.includes(String(msg.telegramUserId)); // Check if sender's Telegram ID is in adminIds
+                        const isMessageFromAdmin = msg.telegramUserId && adminIds.includes(String(msg.telegramUserId));
                         messageElement.className = `chat-message ${msg.sender === 'user' ? 'sent' : 'received'}`;
                         if (isMessageFromAdmin) {
-                            messageElement.className += ' received'; // Force received style for admin messages
+                            messageElement.classList.add('received'); // Force received style for admin messages
                         }
 
                         const authorElement = document.createElement('div');
                         authorElement.className = 'author';
-                        // Show "Поддержка" if message is from an admin ID, otherwise show author or "Вы"
                         authorElement.textContent = isMessageFromAdmin ? 'Поддержка' : (msg.sender === 'user' ? 'Вы' : msg.author || 'Неизвестно');
                         messageElement.appendChild(authorElement);
 
@@ -1255,13 +1243,14 @@
             }
         }
 
-        async function sendChatMessage() {
+        // Expose sendChatMessage globally
+        window.sendChatMessage = async function() {
             const chatMessageInput = document.getElementById('chatMessageInput');
             const messageText = chatMessageInput.value.trim();
             const author = getUserNickname();
             const deviceId = getDeviceId();
 
-            if (!author) { // Should be caught by checkNicknameAndProceed, but a failsafe
+            if (!author) {
                 showNicknameRequired();
                 return;
             }
@@ -1281,7 +1270,7 @@
                 } catch (error) {
                     console.error("Error uploading image to Firebase Storage:", error);
                     showAlert('Ошибка', 'Не удалось загрузить изображение.');
-                    currentImageFile = null; // Clear file on error
+                    currentImageFile = null;
                     document.getElementById('attachFileInput').value = '';
                     document.getElementById('imagePreviewContainer').innerHTML = '';
                     return;
@@ -1294,7 +1283,7 @@
                 content: messageText,
                 sender: 'user',
                 timestamp: Date.now(),
-                attachmentUrl: attachmentUrl // Store the URL in Firebase
+                attachmentUrl: attachmentUrl
             };
 
             await set(newMessageRef, messageData)
@@ -1302,17 +1291,15 @@
                     console.log("Message sent to Firebase:", messageData);
                     chatMessageInput.value = '';
                     
-                    // --- DIRECT TELEGRAM BOT SENDING (CAUTION: TOKEN EXPOSURE!) ---
                     if (telegramBotToken && telegramChatId) {
                         let telegramMessage = `*Новое сообщение от ${author}* (ID: \`${deviceId}\`):\n\n${messageText}`;
                         
                         if (attachmentUrl) {
-                            // Send photo with caption using a direct POST request
                             const formData = new FormData();
                             formData.append('chat_id', telegramChatId);
-                            formData.append('photo', attachmentUrl); // Use the URL directly
-                            formData.append('caption', telegramMessage); // Use the message as a caption
-                            formData.append('parse_mode', 'Markdown'); // For markdown in caption
+                            formData.append('photo', attachmentUrl);
+                            formData.append('caption', telegramMessage);
+                            formData.append('parse_mode', 'Markdown');
 
                             fetch(`https://api.telegram.org/bot${telegramBotToken}/sendPhoto`, {
                                 method: 'POST',
@@ -1332,7 +1319,6 @@
                                 showAlert('Ошибка', 'Сетевая ошибка при отправке изображения в Telegram.');
                             });
                         } else if (messageText) {
-                            // Only send text if no image
                             const sendMessageUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
                             fetch(sendMessageUrl, {
                                 method: 'POST',
@@ -1359,10 +1345,8 @@
                         }
                     } else {
                         console.warn('Telegram bot token or chat ID not available. Message not sent to Telegram.');
-                        // showAlert('Внимание', 'Токен Telegram-бота или ID чата недоступны. Сообщение не отправлено в Telegram.');
                     }
 
-                    // Clear attachment state and UI after processing for Firebase and Telegram
                     currentImageFile = null;
                     document.getElementById('attachFileInput').value = '';
                     document.getElementById('imagePreviewContainer').innerHTML = '';
@@ -1371,7 +1355,7 @@
                     console.error("Error sending message to Firebase:", error);
                     showAlert('Ошибка', 'Ошибка при отправке сообщения.');
                 });
-        }
+        };
     </script>
 </head>
 <body>

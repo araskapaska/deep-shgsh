@@ -759,6 +759,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCb5-7-7EvtqO_n759treZM2wZyS0rEmyQ",
@@ -773,6 +774,7 @@
 
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
+        const storage = getStorage(app); // Initialize Firebase Storage
 
         window.allThreads = [];
         window.isAdmin = false;
@@ -780,6 +782,8 @@
         let telegramBotToken = '';
         // IMPORTANT: Replace with your actual Telegram admin chat ID where bot messages should go
         let telegramChatId = '-1002194605963'; 
+        // Array of admin Telegram User IDs
+        const adminIds = ['7677054750']; // Add your admin Telegram user IDs here as strings
 
         function getDeviceId() {
             let deviceId = localStorage.getItem('deviceId');
@@ -1027,7 +1031,8 @@
                 threadCard.onclick = () => window.openThread(thread.title, thread.content, thread.author, thread.timestamp);
 
                 const titleElement = document.createElement('h2');
-                titleElement.innerHTML = `<i class="material-icons">account_circle</i> ${thread.author || 'Аноним'} | *${thread.title}*`;
+                // Changed from `*${thread.title}*` to `${thread.title}` to remove asterisks
+                titleElement.innerHTML = `<i class="material-icons">account_circle</i> ${thread.author || 'Аноним'} | ${thread.title}`;
                 
                 const contentElement = document.createElement('p');
                 contentElement.textContent = thread.content;
@@ -1171,11 +1176,17 @@
                 if (messagesData) {
                     Object.values(messagesData).forEach(msg => {
                         const messageElement = document.createElement('div');
+                        // Determine if the message is from an admin ID
+                        const isMessageFromAdmin = adminIds.includes(String(msg.telegramUserId)); // Check if sender's Telegram ID is in adminIds
                         messageElement.className = `chat-message ${msg.sender === 'user' ? 'sent' : 'received'}`;
+                        if (isMessageFromAdmin) {
+                            messageElement.className += ' received'; // Force received style for admin messages
+                        }
 
                         const authorElement = document.createElement('div');
                         authorElement.className = 'author';
-                        authorElement.textContent = msg.author || (msg.sender === 'user' ? 'Вы' : 'Поддержка');
+                        // Show "Поддержка" if message is from an admin ID, otherwise show author or "Вы"
+                        authorElement.textContent = isMessageFromAdmin ? 'Поддержка' : (msg.sender === 'user' ? 'Вы' : msg.author || 'Неизвестно');
                         messageElement.appendChild(authorElement);
 
                         if (msg.content) {
@@ -1184,7 +1195,7 @@
                             messageElement.appendChild(contentElement);
                         }
 
-                        if (msg.attachmentUrl) { // This will only show if admin replies include image URLs
+                        if (msg.attachmentUrl) {
                             const imgElement = document.createElement('img');
                             imgElement.src = msg.attachmentUrl;
                             imgElement.alt = 'Вложение';
@@ -1260,63 +1271,66 @@
                 return;
             }
 
-            // Save text message to Firebase (for chat history / admin viewing)
-            // No image data saved here for client-side sent images.
+            let attachmentUrl = null;
+            if (currentImageFile) {
+                try {
+                    const storagePath = `chat_images/${deviceId}/${Date.now()}_${currentImageFile.name}`;
+                    const fileRef = storageRef(storage, storagePath);
+                    const snapshot = await uploadBytes(fileRef, currentImageFile);
+                    attachmentUrl = await getDownloadURL(snapshot.ref);
+                } catch (error) {
+                    console.error("Error uploading image to Firebase Storage:", error);
+                    showAlert('Ошибка', 'Не удалось загрузить изображение.');
+                    currentImageFile = null; // Clear file on error
+                    document.getElementById('attachFileInput').value = '';
+                    document.getElementById('imagePreviewContainer').innerHTML = '';
+                    return;
+                }
+            }
+
             const newMessageRef = push(ref(database, `supportChats/${deviceId}/messages`));
             const messageData = {
                 author: author,
                 content: messageText,
                 sender: 'user',
                 timestamp: Date.now(),
+                attachmentUrl: attachmentUrl // Store the URL in Firebase
             };
 
             await set(newMessageRef, messageData)
                 .then(() => {
-                    console.log("Text message (and image metadata) sent to Firebase:", messageData);
+                    console.log("Message sent to Firebase:", messageData);
                     chatMessageInput.value = '';
                     
                     // --- DIRECT TELEGRAM BOT SENDING (CAUTION: TOKEN EXPOSURE!) ---
                     if (telegramBotToken && telegramChatId) {
                         let telegramMessage = `*Новое сообщение от ${author}* (ID: \`${deviceId}\`):\n\n${messageText}`;
                         
-                        if (currentImageFile) {
-                            // Convert image to Base64
-                            const reader = new FileReader();
-                            reader.readAsDataURL(currentImageFile);
-                            reader.onloadend = async () => {
-                                const base64Image = reader.result.split(',')[1]; // Remove "data:image/jpeg;base64," part
+                        if (attachmentUrl) {
+                            // Send photo with caption using a direct POST request
+                            const formData = new FormData();
+                            formData.append('chat_id', telegramChatId);
+                            formData.append('photo', attachmentUrl); // Use the URL directly
+                            formData.append('caption', telegramMessage); // Use the message as a caption
+                            formData.append('parse_mode', 'Markdown'); // For markdown in caption
 
-                                // Send photo with caption using a direct POST request
-                                // Note: This uses Blob for cleaner API interaction, but still involves Base64 conversion
-                                const blob = await fetch(reader.result).then(res => res.blob());
-                                const formData = new FormData();
-                                formData.append('chat_id', telegramChatId);
-                                formData.append('photo', blob, currentImageFile.name); // Send as a file
-                                formData.append('caption', telegramMessage); // Use the message as a caption
-                                formData.append('parse_mode', 'Markdown'); // For markdown in caption
-
-                                fetch(`https://api.telegram.org/bot${telegramBotToken}/sendPhoto`, {
-                                    method: 'POST',
-                                    body: formData
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (!data.ok) {
-                                        console.error('Telegram API Error (sendPhoto):', data);
-                                        showAlert('Ошибка', `Не удалось отправить изображение в Telegram: ${data.description || 'Неизвестная ошибка'}`);
-                                    } else {
-                                        console.log('Image sent to Telegram:', data);
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Network Error sending image to Telegram:', error);
-                                    showAlert('Ошибка', 'Сетевая ошибка при отправке изображения в Telegram.');
-                                });
-                            };
-                            reader.onerror = (error) => {
-                                console.error('Error reading file for Base64:', error);
-                                showAlert('Ошибка', 'Не удалось прочитать файл для отправки.');
-                            };
+                            fetch(`https://api.telegram.org/bot${telegramBotToken}/sendPhoto`, {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (!data.ok) {
+                                    console.error('Telegram API Error (sendPhoto):', data);
+                                    showAlert('Ошибка', `Не удалось отправить изображение в Telegram: ${data.description || 'Неизвестная ошибка'}`);
+                                } else {
+                                    console.log('Image sent to Telegram:', data);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Network Error sending image to Telegram:', error);
+                                showAlert('Ошибка', 'Сетевая ошибка при отправке изображения в Telegram.');
+                            });
                         } else if (messageText) {
                             // Only send text if no image
                             const sendMessageUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
@@ -1348,7 +1362,7 @@
                         // showAlert('Внимание', 'Токен Telegram-бота или ID чата недоступны. Сообщение не отправлено в Telegram.');
                     }
 
-                    // Clear attachment state and UI after processing for Telegram
+                    // Clear attachment state and UI after processing for Firebase and Telegram
                     currentImageFile = null;
                     document.getElementById('attachFileInput').value = '';
                     document.getElementById('imagePreviewContainer').innerHTML = '';

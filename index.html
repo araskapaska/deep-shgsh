@@ -811,7 +811,8 @@
             return null;
         }
 
-        function saveNickname() {
+        // Expose saveNickname globally
+        window.saveNickname = function() { // Added 'window.'
             // Determine which input field to read from
             const nicknameInputFromHeader = document.getElementById('nicknameInput');
             const nicknameInputFromModal = document.getElementById('nicknameInputModal');
@@ -836,7 +837,7 @@
             } else {
                 showAlert('Ошибка', 'Пожалуйста, введите никнейм.');
             }
-        }
+        };
 
         function setUserNickname(nickname) {
             const deviceId = getDeviceId();
@@ -853,14 +854,14 @@
         // --- Custom Modal Functions ---
         let confirmResolver = null;
 
-        function showAlert(title, message) {
+        window.showAlert = function(title, message) { // Added 'window.'
             const modal = document.getElementById('alertModal');
             document.getElementById('alertModalTitle').textContent = title;
             document.getElementById('alertModalMessage').textContent = message;
             modal.style.display = 'flex';
-        }
+        };
 
-        function showConfirm(title, message) {
+        window.showConfirm = function(title, message) { // Added 'window.'
             return new Promise(resolve => {
                 confirmResolver = resolve;
                 const modal = document.getElementById('confirmModal');
@@ -868,17 +869,17 @@
                 document.getElementById('confirmModalMessage').textContent = message;
                 modal.style.display = 'flex';
             });
-        }
+        };
 
-        function confirmAction(result) {
+        window.confirmAction = function(result) { // Added 'window.'
             if (confirmResolver) {
                 confirmResolver(result);
                 confirmResolver = null;
             }
             closeModal('confirmModal');
-        }
+        };
 
-        function showNicknameRequired() {
+        window.showNicknameRequired = function() { // Added 'window.'
             const modal = document.getElementById('nicknameRequiredModal');
             modal.style.display = 'flex';
             // Disable main page interactions
@@ -894,16 +895,16 @@
                 document.getElementById('nicknameInputModal').value = '';
             }
             document.getElementById('nicknameInputModal').focus();
-        }
+        };
 
-        function closeModal(modalId) {
+        window.closeModal = function(modalId) { // Added 'window.'
             document.getElementById(modalId).style.display = 'none';
             // Re-enable main page interactions only if the nickname is set AND no other modals are open
             if (getUserNickname() && !document.querySelector('.modal[style*="display: flex"]')) {
                 document.getElementById('mainPage').style.pointerEvents = 'auto';
                 document.body.style.overflow = 'auto'; // Re-enable scrolling
             }
-        }
+        };
 
         // Helper to check nickname before proceeding with actions
         function checkNicknameAndProceed(actionFunction, ...args) {
@@ -932,7 +933,7 @@
             }
 
             if (saveNicknameButton) {
-                saveNicknameButton.addEventListener('click', saveNickname);
+                saveNicknameButton.addEventListener('click', window.saveNickname); // Changed to window.saveNickname
             }
 
             const urlParams = new URLSearchParams(window.location.search);
@@ -1468,7 +1469,7 @@
         <div class="modal-content chat-modal-content fixed-height">
             <div class="chat-header">
                 <h2>Поддержка</h2>
-                <button id="closeChatButton" type="button">
+                <button id="closeChatButton" type="button" onclick="closeModal('chatModal')">
                     <i class="material-icons">close</i>
                 </button>
             </div>
@@ -1482,7 +1483,7 @@
                 <button id="attachFileButton" type="button">
                     <i class="material-icons">attach_file</i>
                 </button>
-                <button id="sendMessageButton" type="button">
+                <button id="sendMessageButton" type="button" onclick="sendChatMessage()">
                     <i class="material-icons">send</i>
                 </button>
             </div>

@@ -593,49 +593,9 @@
             margin-top: 5px;
         }
 
-        .chat-message img {
-            max-width: 100%;
-            border-radius: 8px;
-            margin-top: 5px;
-            display: block;
-        }
+        /* Removed .chat-message img style */
 
-        /* Image preview for chat */
-        #imagePreviewContainer {
-            margin-top: 10px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-        .image-preview-item {
-            position: relative;
-            width: 80px;
-            height: 80px;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        .image-preview-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .image-preview-item .remove-image {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            background-color: rgba(0, 0, 0, 0.6);
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            cursor: pointer;
-        }
+        /* Removed #imagePreviewContainer and .image-preview-item styles */
 
 
         .chat-input-area {
@@ -759,7 +719,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+        // Removed import for getStorage, ref as storageRef, uploadBytes, getDownloadURL
 
         const firebaseConfig = {
             apiKey: "AIzaSyCb5-7-7EvtqO_n759treZM2wZyS0rEmyQ",
@@ -774,16 +734,14 @@
 
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
-        const storage = getStorage(app); // Initialize Firebase Storage
+        // Removed storage initialization: const storage = getStorage(app);
 
         window.allThreads = [];
         window.isAdmin = false;
         window.adminPasswordFromFirebase = '';
         let telegramBotToken = '';
-        // IMPORTANT: Replace with your actual Telegram admin chat ID where bot messages should go
         let telegramChatId = '-1002194605963'; 
-        // Array of admin Telegram User IDs
-        const adminIds = ['7677054750']; // Add your admin Telegram user IDs here as strings
+        const adminIds = ['7677054750'];
 
         function getDeviceId() {
             let deviceId = localStorage.getItem('deviceId');
@@ -796,7 +754,7 @@
 
         const NICKNAME_KEY = 'userNickname';
         const NICKNAME_LAST_SET_KEY = 'nicknameLastSet';
-        const NICKNAME_EXPIRATION_DAYS = 7; // Nickname lasts 7 days
+        const NICKNAME_EXPIRATION_DAYS = 7;
 
         function getUserNickname() {
             const deviceId = getDeviceId();
@@ -815,7 +773,6 @@
             return null;
         }
 
-        // Expose saveNickname globally
         window.saveNickname = function() {
             const nicknameInputFromHeader = document.getElementById('nicknameInput');
             const nicknameInputFromModal = document.getElementById('nicknameInputModal');
@@ -850,7 +807,6 @@
             }
         }
 
-        // --- Custom Modal Functions ---
         let confirmResolver = null;
 
         window.showAlert = function(title, message) {
@@ -902,7 +858,6 @@
             }
         };
 
-        // Helper to check nickname before proceeding with actions
         function checkNicknameAndProceed(actionFunction, ...args) {
             if (!getUserNickname()) {
                 showNicknameRequired();
@@ -912,7 +867,6 @@
             return true;
         }
 
-        // --- Event Listeners and Initial Load ---
         document.addEventListener('DOMContentLoaded', () => {
             const nicknameInput = document.getElementById('nicknameInput');
             const saveNicknameButton = document.getElementById('saveNicknameButton');
@@ -943,7 +897,6 @@
                 });
             }
 
-            // Fetch Telegram Bot Token
             onValue(ref(database, 'bot'), (snapshot) => {
                 telegramBotToken = snapshot.val();
                 console.log("Telegram Bot Token fetched (CAUTION: FOR DIRECT CLIENT-SIDE USE!):", telegramBotToken ? "********" : "Not found");
@@ -954,28 +907,23 @@
             loadThreads();
             document.getElementById('threadSearch').addEventListener('input', filterThreads);
 
-            // Support Chat Event Listeners
             const supportButton = document.getElementById('supportButton');
             const closeChatButton = document.getElementById('closeChatButton');
             const sendMessageButton = document.getElementById('sendMessageButton');
             const chatMessageInput = document.getElementById('chatMessageInput');
-            const attachFileInput = document.getElementById('attachFileInput');
-            const attachFileButton = document.getElementById('attachFileButton');
+            // Removed attachFileInput and attachFileButton from selection
 
             if (supportButton) supportButton.addEventListener('click', () => checkNicknameAndProceed(openChatModal));
             if (closeChatButton) closeChatButton.addEventListener('click', () => closeModal('chatModal'));
-            // Corrected `onclick` to event listener for `sendMessageButton`
             if (sendMessageButton) sendMessageButton.addEventListener('click', window.sendChatMessage);
             if (chatMessageInput) chatMessageInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    window.sendChatMessage(); // Call global function
+                    window.sendChatMessage();
                 }
             });
-            if (attachFileButton) attachFileButton.addEventListener('click', () => attachFileInput.click());
-            if (attachFileInput) attachFileInput.addEventListener('change', handleFileAttach);
+            // Removed event listener for attachFileButton and attachFileInput
 
-            // Global functions for buttons that need nickname check
             window.showNewThreadPage = () => checkNicknameAndProceed(_showNewThreadPage);
         });
 
@@ -1021,7 +969,6 @@
                 threadCard.onclick = () => window.openThread(thread.title, thread.content, thread.author, thread.timestamp);
 
                 const titleElement = document.createElement('h2');
-                // Removed asterisks from title display
                 titleElement.innerHTML = `<i class="material-icons">account_circle</i> ${thread.author || 'Аноним'} | ${thread.title}`;
                 
                 const contentElement = document.createElement('p');
@@ -1122,7 +1069,6 @@
             document.getElementById('threadPage').style.display = 'none';
         };
 
-        // Internal function called by checkNicknameAndProceed
         function _showNewThreadPage() {
             document.getElementById('mainPage').style.display = 'none';
             document.getElementById('newThreadPage').style.display = 'flex';
@@ -1148,8 +1094,7 @@
             }
         };
 
-        // --- Support Chat Functions ---
-        let currentImageFile = null; // Stores the file object for the image to be sent
+        // --- Support Chat Functions (Image functionality removed) ---
 
         function openChatModal() {
             const chatModal = document.getElementById('chatModal');
@@ -1165,11 +1110,10 @@
                 if (messagesData) {
                     Object.values(messagesData).forEach(msg => {
                         const messageElement = document.createElement('div');
-                        // Determine if the message is from an admin ID
                         const isMessageFromAdmin = msg.telegramUserId && adminIds.includes(String(msg.telegramUserId));
                         messageElement.className = `chat-message ${msg.sender === 'user' ? 'sent' : 'received'}`;
                         if (isMessageFromAdmin) {
-                            messageElement.classList.add('received'); // Force received style for admin messages
+                            messageElement.classList.add('received');
                         }
 
                         const authorElement = document.createElement('div');
@@ -1183,12 +1127,7 @@
                             messageElement.appendChild(contentElement);
                         }
 
-                        if (msg.attachmentUrl) {
-                            const imgElement = document.createElement('img');
-                            imgElement.src = msg.attachmentUrl;
-                            imgElement.alt = 'Вложение';
-                            messageElement.appendChild(imgElement);
-                        }
+                        // Removed logic for displaying msg.attachmentUrl here
 
                         const timestampElement = document.createElement('div');
                         timestampElement.className = 'timestamp';
@@ -1202,48 +1141,8 @@
             });
         }
 
-        function handleFileAttach(event) {
-            const file = event.target.files[0];
-            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-            imagePreviewContainer.innerHTML = '';
+        // Removed handleFileAttach function
 
-            if (file) {
-                if (!file.type.startsWith('image/')) {
-                    showAlert('Ошибка', 'Пожалуйста, выберите файл изображения.');
-                    currentImageFile = null;
-                    return;
-                }
-                currentImageFile = file;
-
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'image-preview-item';
-                    
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.alt = 'Предпросмотр изображения';
-                    previewItem.appendChild(img);
-
-                    const removeButton = document.createElement('span');
-                    removeButton.className = 'remove-image material-icons';
-                    removeButton.textContent = 'close';
-                    removeButton.onclick = () => {
-                        currentImageFile = null;
-                        document.getElementById('attachFileInput').value = '';
-                        imagePreviewContainer.innerHTML = '';
-                    };
-                    previewItem.appendChild(removeButton);
-                    
-                    imagePreviewContainer.appendChild(previewItem);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                currentImageFile = null;
-            }
-        }
-
-        // Expose sendChatMessage globally
         window.sendChatMessage = async function() {
             const chatMessageInput = document.getElementById('chatMessageInput');
             const messageText = chatMessageInput.value.trim();
@@ -1255,27 +1154,12 @@
                 return;
             }
 
-            if (!messageText && !currentImageFile) {
-                showAlert('Ошибка', 'Пожалуйста, введите сообщение или прикрепите файл.');
+            if (!messageText) { // Check only for messageText, no images
+                showAlert('Ошибка', 'Пожалуйста, введите сообщение.');
                 return;
             }
 
-            let attachmentUrl = null;
-            if (currentImageFile) {
-                try {
-                    const storagePath = `chat_images/${deviceId}/${Date.now()}_${currentImageFile.name}`;
-                    const fileRef = storageRef(storage, storagePath);
-                    const snapshot = await uploadBytes(fileRef, currentImageFile);
-                    attachmentUrl = await getDownloadURL(snapshot.ref);
-                } catch (error) {
-                    console.error("Error uploading image to Firebase Storage:", error);
-                    showAlert('Ошибка', 'Не удалось загрузить изображение.');
-                    currentImageFile = null;
-                    document.getElementById('attachFileInput').value = '';
-                    document.getElementById('imagePreviewContainer').innerHTML = '';
-                    return;
-                }
-            }
+            // Removed all image upload logic (currentImageFile, storagePath, uploadBytes, getDownloadURL)
 
             const newMessageRef = push(ref(database, `supportChats/${deviceId}/messages`));
             const messageData = {
@@ -1283,7 +1167,7 @@
                 content: messageText,
                 sender: 'user',
                 timestamp: Date.now(),
-                attachmentUrl: attachmentUrl
+                // Removed attachmentUrl from messageData
             };
 
             await set(newMessageRef, messageData)
@@ -1294,62 +1178,35 @@
                     if (telegramBotToken && telegramChatId) {
                         let telegramMessage = `*Новое сообщение от ${author}* (ID: \`${deviceId}\`):\n\n${messageText}`;
                         
-                        if (attachmentUrl) {
-                            const formData = new FormData();
-                            formData.append('chat_id', telegramChatId);
-                            formData.append('photo', attachmentUrl);
-                            formData.append('caption', telegramMessage);
-                            formData.append('parse_mode', 'Markdown');
-
-                            fetch(`https://api.telegram.org/bot${telegramBotToken}/sendPhoto`, {
-                                method: 'POST',
-                                body: formData
+                        // Only send text message, no photo logic
+                        const sendMessageUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
+                        fetch(sendMessageUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: telegramChatId,
+                                text: telegramMessage,
+                                parse_mode: 'Markdown'
                             })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (!data.ok) {
-                                    console.error('Telegram API Error (sendPhoto):', data);
-                                    showAlert('Ошибка', `Не удалось отправить изображение в Telegram: ${data.description || 'Неизвестная ошибка'}`);
-                                } else {
-                                    console.log('Image sent to Telegram:', data);
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Network Error sending image to Telegram:', error);
-                                showAlert('Ошибка', 'Сетевая ошибка при отправке изображения в Telegram.');
-                            });
-                        } else if (messageText) {
-                            const sendMessageUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
-                            fetch(sendMessageUrl, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    chat_id: telegramChatId,
-                                    text: telegramMessage,
-                                    parse_mode: 'Markdown'
-                                })
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (!data.ok) {
-                                    console.error('Telegram API Error (sendMessage):', data);
-                                    showAlert('Ошибка', `Не удалось отправить сообщение в Telegram: ${data.description || 'Неизвестная ошибка'}`);
-                                } else {
-                                    console.log('Text message sent to Telegram:', data);
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Network Error sending message to Telegram:', error);
-                                showAlert('Ошибка', 'Сетевая ошибка при отправке сообщения в Telegram.');
-                            });
-                        }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (!data.ok) {
+                                console.error('Telegram API Error (sendMessage):', data);
+                                showAlert('Ошибка', `Не удалось отправить сообщение в Telegram: ${data.description || 'Неизвестная ошибка'}`);
+                            } else {
+                                console.log('Text message sent to Telegram:', data);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Network Error sending message to Telegram:', error);
+                            showAlert('Ошибка', 'Сетевая ошибка при отправке сообщения в Telegram.');
+                        });
                     } else {
                         console.warn('Telegram bot token or chat ID not available. Message not sent to Telegram.');
                     }
 
-                    currentImageFile = null;
-                    document.getElementById('attachFileInput').value = '';
-                    document.getElementById('imagePreviewContainer').innerHTML = '';
+                    // Removed clearing attachment state and UI
                 })
                 .catch((error) => {
                     console.error("Error sending message to Firebase:", error);
@@ -1473,14 +1330,8 @@
             </div>
             <div class="chat-messages" id="chatMessages">
                 </div>
-            <div id="imagePreviewContainer">
-                </div>
             <div class="chat-input-area">
                 <input type="text" id="chatMessageInput" placeholder="Введите сообщение...">
-                <input type="file" id="attachFileInput" accept="image/*" style="display:none;">
-                <button id="attachFileButton" type="button">
-                    <i class="material-icons">attach_file</i>
-                </button>
                 <button id="sendMessageButton" type="button" onclick="sendChatMessage()">
                     <i class="material-icons">send</i>
                 </button>

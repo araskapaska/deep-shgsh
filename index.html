@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSHGSH</title>
+    <link rel="icon" href="iconsite.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Geologika:wght@300;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --background-color: #2e282d;
+            --button-color: #49204d;
+            --branch-color: #120d11;
+            --button-text-color: #ecb4eb;
+            --branch-text-color: #ebdfe6;
+            --font-bold: 'Geologika', sans-serif;
+            --font-medium: 'Geologika', sans-serif;
+            --border-color: #7b2e81;
+            --input-background: #1e1b1d;
+            --input-text-color: #ebdfe6;
+            --red-button-color: #cc0000;
+            --red-button-hover: #ff3333;
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--font-medium);
+            background-color: var(--background-color);
+            color: var(--branch-text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        button {
+            background-color: var(--button-color);
+            color: var(--button-text-color);
+            border: 1px solid var(--border-color);
+            padding: 12px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: var(--font-medium);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #5d2862;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
+        }
+
+        .red-button {
+            background-color: var(--red-button-color);
+            border-color: darken(var(--red-button-color), 10%);
+        }
+
+        .red-button:hover {
+            background-color: var(--red-button-hover);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background-color: var(--branch-color);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            flex-wrap: wrap;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            justify-content: center;
+        }
+
+        .header img {
+            height: 40px;
+        }
+
+        .nickname-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 20px;
+            flex-shrink: 0;
+        }
+
+        .nickname-container input {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-background);
+            color: var(--input-text-color);
+            font-family: var(--font-medium);
+        }
+
+        .search-container {
+            margin-top: 10px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .search-container input {
+            width: calc(100% - 40px);
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-background);
+            color: var(--input-text-color);
+            font-family: var(--font-medium);
+            text-align: center;
+        }
+
+        .main-page {
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+        }
+
+        .thread-card {
+            background-color: var(--branch-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+        }
+
+        .thread-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .thread-card h2 {
+            font-family: var(--font-bold);
+            font-weight: 700;
+            color: var(--branch-text-color);
+            margin: 0 0 8px 0;
+            font-size: 22px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+        }
+
+        .thread-card h2 .material-icons {
+            margin-right: 8px;
+            font-size: 24px;
+        }
+
+        .thread-card p {
+            font-family: var(--font-medium);
+            font-weight: 300;
+            color: var(--branch-text-color);
+            margin: 0;
+            font-size: 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .thread-card .delete-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--red-button-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease;
+        }
+
+        .thread-card .delete-button:hover {
+            background-color: var(--red-button-hover);
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--button-color);
+            color: var(--button-text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            z-index: 1000;
+            border: 1px solid var(--border-color);
+        }
+
+        .fab:hover {
+            background-color: #5d2862;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.4);
+        }
+
+        .thread-page {
+            flex-grow: 1;
+            padding: 20px;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .thread-page-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .thread-page-header button {
+            background-color: var(--button-color);
+            color: var(--button-text-color);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-right: 15px;
+        }
+
+        .thread-page-header button:hover {
+            background-color: #5d2862;
+            transform: translateY(-2px);
+        }
+
+        .thread-page-header h1 {
+            font-family: var(--font-bold);
+            font-weight: 700;
+            color: var(--branch-text-color);
+            margin: 0;
+            font-size: 28px;
+            flex-grow: 1;
+        }
+
+        .thread-page-header .copy-button {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--button-text-color);
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: none;
+            padding: 0;
+        }
+        .thread-page-header .copy-button:hover {
+            color: #af64b4;
+            background: none;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+
+        .thread-content {
+            font-family: var(--font-medium);
+            font-weight: 300;
+            color: var(--branch-text-color);
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-bottom: 20px;
+        }
+
+        .thread-meta {
+            font-size: 14px;
+            color: #aaa;
+            text-align: right;
+        }
+
+        .new-thread-page {
+            flex-grow: 1;
+            padding: 20px;
+            display: none;
+            flex-direction: column;
+        }
+
+        .new-thread-page h2 {
+            font-family: var(--font-bold);
+            font-weight: 700;
+            color: var(--branch-text-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-family: var(--font-medium);
+            color: var(--branch-text-color);
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: calc(100% - 24px);
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--input-background);
+            color: var(--input-text-color);
+            font-family: var(--font-medium);
+            font-size: 16px;
+            box-sizing: border-box;
+            resize: vertical;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #af64b4;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 0 3px rgba(175, 100, 180, 0.3);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .footer {
+            padding: 15px;
+            text-align: center;
+            color: #aaa;
+            font-size: 14px;
+            background-color: var(--branch-color);
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .footer .material-icons {
+            font-size: 16px;
+            color: #e0647c;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--branch-color);
+            margin: auto;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            width: 80%;
+            max-width: 400px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .modal-content input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--input-background);
+            color: var(--input-text-color);
+            font-family: var(--font-medium);
+        }
+
+        .modal-content button {
+            margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 10px;
+            }
+
+            .header-left {
+                width: 100%;
+                justify-content: center;
+                margin-bottom: 10px;
+            }
+
+            .nickname-container {
+                margin-left: 0;
+                margin-top: 10px;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .search-container {
+                width: 100%;
+                padding: 0 10px;
+            }
+
+            .search-container input {
+                width: 100%;
+            }
+
+            .fab {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 30px;
+            }
+
+            .thread-card {
+                padding: 15px;
+            }
+
+            .thread-card h2 {
+                font-size: 20px;
+            }
+
+            .thread-card p {
+                font-size: 14px;
+            }
+
+            .thread-page-header h1 {
+                font-size: 24px;
+            }
+
+            .form-group input[type="text"],
+            .form-group textarea {
+                width: calc(100% - 20px);
+            }
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCb5-7-7EvtqO_n759treZM2wZyS0rEmyQ",
+            authDomain: "hgsh-f13c4.firebaseapp.com",
+            databaseURL: "https://hgsh-f13c4-default-rtdb.firebaseio.com",
+            projectId: "hgsh-f13c4",
+            storageBucket: "hgsh-f13c4.firebase-storage.app",
+            messagingSenderId: "633183463703",
+            appId: "1:633183463703:web:e0ba7723fa419f94b1ef52",
+            measurementId: "G-N732H8MNYF"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        window.allThreads = [];
+        window.isAdmin = false;
+        window.adminPasswordFromFirebase = '';
+
+        function getDeviceId() {
+            let deviceId = localStorage.getItem('deviceId');
+            if (!deviceId) {
+                deviceId = 'device_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                localStorage.setItem('deviceId', deviceId);
+            }
+            return deviceId;
+        }
+
+        const NICKNAME_KEY = 'userNickname';
+        const NICKNAME_LAST_SET_KEY = 'nicknameLastSet';
+        const NICKNAME_EXPIRATION_DAYS = 7;
+
+        function getUserNickname() {
+            const deviceId = getDeviceId();
+            const nicknameData = JSON.parse(localStorage.getItem(NICKNAME_KEY + '_' + deviceId));
+            const lastSet = localStorage.getItem(NICKNAME_LAST_SET_KEY + '_' + deviceId);
+
+            if (nicknameData && lastSet) {
+                const now = new Date().getTime();
+                const lastSetTime = new Date(parseInt(lastSet)).getTime();
+                const sevenDaysInMillis = NICKNAME_EXPIRATION_DAYS * 24 * 60 * 60 * 1000;
+
+                if (now - lastSetTime < sevenDaysInMillis) {
+                    return nicknameData.nickname;
+                }
+            }
+            return null;
+        }
+
+        function saveNickname() {
+            const nicknameInput = document.getElementById('nicknameInput');
+            const newNickname = nicknameInput.value.trim();
+            if (newNickname) {
+                setUserNickname(newNickname);
+                alert('Ник сохранен!');
+            } else {
+                alert('Пожалуйста, введите ник.');
+            }
+        }
+
+        function setUserNickname(nickname) {
+            const deviceId = getDeviceId();
+            const now = new Date().getTime();
+            localStorage.setItem(NICKNAME_KEY + '_' + deviceId, JSON.stringify({ nickname }));
+            localStorage.setItem(NICKNAME_LAST_SET_KEY + '_' + deviceId, now.toString());
+            document.getElementById('nicknameInput').value = nickname;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const nicknameInput = document.getElementById('nicknameInput');
+            const storedNickname = getUserNickname();
+            if (storedNickname) {
+                nicknameInput.value = storedNickname;
+            } else {
+                nicknameInput.value = '';
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('admin') === 'true') {
+                const modal = document.getElementById('adminModal');
+                modal.style.display = 'flex';
+                onValue(ref(database, 'adminPassword'), (snapshot) => {
+                    window.adminPasswordFromFirebase = snapshot.val();
+                }, {
+                    onlyOnce: true
+                });
+            }
+
+            loadThreads();
+            document.getElementById('threadSearch').addEventListener('input', filterThreads);
+        });
+
+
+        window.checkAdminPassword = function() {
+            const enteredPassword = document.getElementById('adminPasswordInput').value;
+            if (enteredPassword === window.adminPasswordFromFirebase) {
+                window.isAdmin = true;
+                document.getElementById('adminModal').style.display = 'none';
+                alert('Admin mode activated!');
+                loadThreads();
+            } else {
+                alert('Incorrect password!');
+            }
+        };
+
+        window.loadThreads = function() {
+            const threadsRef = ref(database, 'threads');
+            onValue(threadsRef, (snapshot) => {
+                const threadsContainer = document.getElementById('threadsContainer');
+                threadsContainer.innerHTML = '';
+                const threadsData = snapshot.val();
+                window.allThreads = [];
+
+                if (threadsData) {
+                    Object.keys(threadsData).forEach(key => {
+                        const thread = { id: key, ...threadsData[key] };
+                        window.allThreads.push(thread);
+                    });
+                }
+                displayThreads(window.allThreads);
+            });
+        };
+
+        function displayThreads(threads) {
+            const threadsContainer = document.getElementById('threadsContainer');
+            threadsContainer.innerHTML = '';
+            threads.sort((a, b) => b.timestamp - a.timestamp);
+
+            threads.forEach(thread => {
+                const threadCard = document.createElement('div');
+                threadCard.className = 'thread-card';
+                threadCard.onclick = () => window.openThread(thread.title, thread.content, thread.author, thread.timestamp);
+
+                const titleElement = document.createElement('h2');
+                titleElement.innerHTML = `<i class="material-icons">account_circle</i> ${thread.author || 'Аноним'}  ${thread.title}`;
+                
+                const contentElement = document.createElement('p');
+                contentElement.textContent = thread.content;
+
+                threadCard.appendChild(titleElement);
+                threadCard.appendChild(contentElement);
+
+                if (window.isAdmin) {
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'delete-button red-button';
+                    deleteButton.innerHTML = `<i class="material-icons">delete</i>`;
+                    deleteButton.onclick = (event) => {
+                        event.stopPropagation();
+                        window.deleteThread(thread.id);
+                    };
+                    threadCard.appendChild(deleteButton);
+                }
+
+                threadsContainer.appendChild(threadCard);
+            });
+        }
+
+        window.filterThreads = function() {
+            const searchTerm = document.getElementById('threadSearch').value.toLowerCase();
+            const filteredThreads = window.allThreads.filter(thread =>
+                thread.title.toLowerCase().includes(searchTerm) ||
+                thread.content.toLowerCase().includes(searchTerm) ||
+                (thread.author && thread.author.toLowerCase().includes(searchTerm))
+            );
+            displayThreads(filteredThreads);
+        };
+
+
+        window.publishThread = function() {
+            const title = document.getElementById('newThreadTitle').value;
+            const content = document.getElementById('newThreadContent').value;
+            const author = getUserNickname() || 'Аноним';
+
+            if (title.trim() === '' || content.trim() === '') {
+                alert('Пожалуйста, заполните оба поля: Заголовок и Содержание.');
+                return;
+            }
+
+            const newThreadRef = push(ref(database, 'threads'));
+            set(newThreadRef, {
+                title: title,
+                content: content,
+                author: author,
+                timestamp: Date.now()
+            }).then(() => {
+                alert('Ветка успешно опубликована!');
+                window.hideNewThreadPage();
+                document.getElementById('newThreadTitle').value = '';
+                document.getElementById('newThreadContent').value = '';
+            }).catch((error) => {
+                console.error("Error publishing thread: ", error);
+                alert('Ошибка при публикации ветки.');
+            });
+        };
+
+        window.deleteThread = function(threadId) {
+            if (confirm('Вы уверены, что хотите удалить эту ветку?')) {
+                remove(ref(database, 'threads/' + threadId))
+                    .then(() => {
+                        alert('Ветка успешно удалена!');
+                    })
+                    .catch((error) => {
+                        console.error("Error removing thread: ", error);
+                        alert('Ошибка при удалении ветки.');
+                    });
+            }
+        };
+
+        window.openThread = function(title, content, author, timestamp) {
+            document.getElementById('mainPage').style.display = 'none';
+            document.getElementById('threadPage').style.display = 'flex';
+            document.getElementById('threadTitle').textContent = title;
+            document.getElementById('threadContent').textContent = content;
+
+            const date = new Date(timestamp);
+            const formattedDate = date.toLocaleString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('threadMeta').textContent = `Создана в ${formattedDate} автором ${author || 'Аноним'}`;
+
+            window.currentThreadData = { title, content, author, formattedDate };
+        };
+
+        window.closeThread = function() {
+            document.getElementById('mainPage').style.display = 'flex';
+            document.getElementById('threadPage').style.display = 'none';
+        };
+
+        window.showNewThreadPage = function() {
+            document.getElementById('mainPage').style.display = 'none';
+            document.getElementById('newThreadPage').style.display = 'flex';
+            document.getElementById('newThreadTitle').value = '';
+            document.getElementById('newThreadContent').value = '';
+        };
+
+        window.hideNewThreadPage = function() {
+            document.getElementById('mainPage').style.display = 'flex';
+            document.getElementById('newThreadPage').style.display = 'none';
+        };
+
+        window.copyThreadContent = function() {
+            if (window.currentThreadData) {
+                const { title, content, author, formattedDate } = window.currentThreadData;
+                const textToCopy = `${title}\n\n${content}\n\nСоздана в ${formattedDate} автором ${author || 'Аноним'}`;
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    alert('Содержание ветки скопировано!');
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                    alert('Не удалось скопировать текст.');
+                });
+            }
+        };
+    </script>
+</head>
+<body>
+
+    <div id="mainPage" class="main-page">
+        <div class="header">
+            <div class="header-left">
+                <img src="iconforum.png" alt="Форум Иконка">
+            </div>
+            <div class="nickname-container">
+                <input type="text" id="nicknameInput" placeholder="Введите ваш ник">
+                <button onclick="saveNickname()">Сохранить ник</button>
+            </div>
+            <div class="search-container">
+                <input type="text" id="threadSearch" placeholder="Поиск по веткам...">
+            </div>
+        </div>
+
+        <div id="threadsContainer">
+        </div>
+
+        <button class="fab" onclick="showNewThreadPage()">
+            <i class="material-icons">add</i>
+        </button>
+    </div>
+
+    <div id="threadPage" class="thread-page">
+        <div class="thread-page-header">
+            <button onclick="closeThread()">
+                <i class="material-icons">arrow_back</i>
+            </button>
+            <h1 id="threadTitle"></h1>
+            <button class="copy-button" onclick="copyThreadContent()">
+                <i class="material-icons">content_copy</i>
+            </button>
+        </div>
+        <p id="threadContent" class="thread-content"></p>
+        <p id="threadMeta" class="thread-meta"></p>
+    </div>
+
+    <div id="newThreadPage" class="new-thread-page">
+        <div class="thread-page-header">
+            <button onclick="hideNewThreadPage()">
+                <i class="material-icons">arrow_back</i>
+            </button>
+            <h1>Новая Ветка</h1>
+        </div>
+        <div class="form-group">
+            <label for="newThreadTitle">Заголовок</label>
+            <input type="text" id="newThreadTitle" placeholder="Введите заголовок новой ветки">
+        </div>
+        <div class="form-group">
+            <label for="newThreadContent">Содержание</label>
+            <textarea id="newThreadContent" rows="10" placeholder="Напишите текст вашей ветки"></textarea>
+        </div>
+        <div class="form-actions">
+            <button onclick="publishThread()">
+                <i class="material-icons">send</i> Опубликовать
+            </button>
+        </div>
+    </div>
+
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <h2>Введите пароль администратора</h2>
+            <input type="password" id="adminPasswordInput" placeholder="Пароль">
+            <button onclick="checkAdminPassword()">Войти</button>
+        </div>
+    </div>
+
+    <footer class="footer">
+        Created by sashok(xqss) with <i class="material-icons">favorite</i>
+    </footer>
+
+</body>
+</html>
